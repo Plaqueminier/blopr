@@ -400,7 +400,73 @@
         let bpEntries = [];
 
 
-        function addBPEntry() {
+        const API_BASE = 'http://localhost:3847/api';
+
+        async function loadEntries() {
+            try {
+                const response = await fetch(`${API_BASE}/entries`);
+                if (response.ok) {
+                    bpEntries = await response.json();
+                    // Convert backend format to frontend format
+                    bpEntries = bpEntries.map(entry => ({
+                        id: entry.id,
+                        date: `${entry.date} ${entry.time}`,
+                        systolic: entry.systolic,
+                        diastolic: entry.diastolic,
+                        heartRate: entry.heart_rate
+                    }));
+                    renderEntries();
+                    drawChart();
+                }
+            } catch (error) {
+                console.error('Failed to load entries:', error);
+                // Fallback to localStorage if API fails
+                loadFromLocalStorage();
+            }
+        }
+
+        async function saveEntry(entry) {
+            try {
+                const response = await fetch(`${API_BASE}/entries`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        systolic: entry.systolic,
+                        diastolic: entry.diastolic,
+                        heart_rate: entry.heartRate,
+                        date: entry.date.split(' ')[0],
+                        time: entry.date.split(' ')[1]
+                    })
+                });
+                
+                if (response.ok) {
+                    const savedEntry = await response.json();
+                    // Update local entry with server ID
+                    entry.id = savedEntry.id;
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Failed to save entry:', error);
+                return false;
+            }
+        }
+
+        async function removeEntry(entryId) {
+            try {
+                const response = await fetch(`${API_BASE}/entries/${entryId}`, {
+                    method: 'DELETE'
+                });
+                return response.ok;
+            } catch (error) {
+                console.error('Failed to delete entry:', error);
+                return false;
+            }
+        }
+
+        async function addBPEntry() {
             console.log('Add BP Entry called');
             
             const systolic = document.getElementById('systolic').value;
@@ -447,22 +513,30 @@
             
             console.log('Adding entry:', entry);
             
-            bpEntries.push(entry);
-            
-            document.getElementById('systolic').value = '';
-            document.getElementById('diastolic').value = '';
-            document.getElementById('heartRate').value = '';
-            
-            renderEntries();
-            saveToLocalStorage();
-            
-            console.log('Entry added, total entries:', bpEntries.length);
+            const saved = await saveEntry(entry);
+            if (saved) {
+                bpEntries.push(entry);
+                
+                document.getElementById('systolic').value = '';
+                document.getElementById('diastolic').value = '';
+                document.getElementById('heartRate').value = '';
+                
+                renderEntries();
+                
+                console.log('Entry added, total entries:', bpEntries.length);
+            } else {
+                alert('Failed to save entry. Please try again.');
+            }
         }
 
-        function deleteEntry(entryId) {
-            bpEntries = bpEntries.filter(entry => entry.id !== entryId);
-            renderEntries();
-            saveToLocalStorage();
+        async function deleteEntry(entryId) {
+            const deleted = await removeEntry(entryId);
+            if (deleted) {
+                bpEntries = bpEntries.filter(entry => entry.id !== entryId);
+                renderEntries();
+            } else {
+                alert('Failed to delete entry. Please try again.');
+            }
         }
 
         function renderEntries() {
@@ -658,7 +732,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadFromLocalStorage();
+            loadEntries();
         });
 
         console.log('Blopr Blood Pressure Tracker loaded successfully!');
