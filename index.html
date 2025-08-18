@@ -400,7 +400,21 @@
         let bpEntries = [];
 
 
-        const API_BASE = 'http://localhost:3847/api';
+        // Auto-detect API base URL for cross-device compatibility
+        function getApiBase() {
+            // Manual override - uncomment and set your server IP if auto-detection fails
+            // return 'http://YOUR_SERVER_IP:3847/api';
+            
+            // If accessed via localhost, use localhost
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return 'http://localhost:3847/api';
+            }
+            // Otherwise use the same host as the frontend
+            return `http://${window.location.hostname}:3847/api`;
+        }
+        
+        const API_BASE = getApiBase();
+        console.log('Using API base:', API_BASE);
 
         async function loadEntries() {
             try {
@@ -420,8 +434,7 @@
                 }
             } catch (error) {
                 console.error('Failed to load entries:', error);
-                // Fallback to localStorage if API fails
-                loadFromLocalStorage();
+                alert('Failed to connect to server. Please check if the backend is running.');
             }
         }
 
@@ -560,11 +573,6 @@
             drawChart();
         }
 
-        function saveToLocalStorage() {
-            localStorage.setItem('bloprData', JSON.stringify({
-                bpEntries: bpEntries
-            }));
-        }
 
         let systolicChart = null;
         let diastolicChart = null;
@@ -698,15 +706,6 @@
             });
         }
 
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem('bloprData');
-            if (saved) {
-                const data = JSON.parse(saved);
-                bpEntries = data.bpEntries || [];
-                renderEntries();
-                drawChart();
-            }
-        }
 
         let devMode = false;
 
