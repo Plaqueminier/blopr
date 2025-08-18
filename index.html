@@ -26,7 +26,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             text-align: center;
-            max-width: 400px;
+            max-width: 800px;
             width: 90%;
         }
         
@@ -98,29 +98,297 @@
         .delete-btn:hover {
             background: #c82333;
         }
+        
+        .bp-form {
+            margin: 2rem 0;
+            text-align: left;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .entries-section {
+            margin-top: 2rem;
+        }
+        
+        .entries-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .entries-table th,
+        .entries-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .entries-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .entries-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+                justify-content: flex-start;
+                min-height: auto;
+            }
+            
+            .container {
+                margin: 20px auto;
+                padding: 1.5rem;
+                max-width: 100%;
+                width: 95%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .form-group {
+                margin-bottom: 1.5rem;
+                flex: none;
+                min-width: auto;
+            }
+            
+            .form-group input {
+                padding: 12px;
+                font-size: 1.1rem;
+            }
+            
+            button {
+                padding: 12px 20px;
+                font-size: 1.1rem;
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .entries-table {
+                font-size: 0.9rem;
+            }
+            
+            .entries-table th,
+            .entries-table td {
+                padding: 8px 4px;
+                word-wrap: break-word;
+            }
+            
+            .entries-table th:first-child,
+            .entries-table td:first-child {
+                min-width: 120px;
+            }
+            
+            .delete-btn {
+                padding: 6px 8px;
+                font-size: 0.7rem;
+                width: auto;
+                margin: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .entries-table {
+                font-size: 0.8rem;
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .entries-table th,
+            .entries-table td {
+                padding: 6px 3px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Blopr</h1>
-        <p>A simple interactive web app</p>
+        <p>Blood Pressure & Heart Rate Tracker</p>
         
-        <div class="counter" id="counter">0</div>
-        
-        <div>
-            <button onclick="increment()">+</button>
-            <button onclick="decrement()">-</button>
-            <button onclick="reset()">Reset</button>
+        <div class="bp-form">
+            <h3>Add New Entry</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="systolic">Systolic:</label>
+                    <input type="number" id="systolic" placeholder="120" min="70" max="250">
+                </div>
+                <div class="form-group">
+                    <label for="diastolic">Diastolic:</label>
+                    <input type="number" id="diastolic" placeholder="80" min="40" max="150">
+                </div>
+                <div class="form-group">
+                    <label for="heartRate">Heart Rate:</label>
+                    <input type="number" id="heartRate" placeholder="70" min="40" max="200">
+                </div>
+                <div class="form-group">
+                    <button onclick="addBPEntry()">Add Entry</button>
+                    <button onclick="testAlert()" style="background: orange; margin-left: 10px;">Test JS</button>
+                </div>
+            </div>
         </div>
         
-        <div class="task-section">
-            <h3>Quick Tasks</h3>
-            <input type="text" class="task-input" id="taskInput" placeholder="Add a new task..." onkeypress="handleTaskInput(event)">
-            <button onclick="addTask()">Add Task</button>
-            <ul class="task-list" id="taskList"></ul>
+        <div class="entries-section">
+            <h3>Your Entries</h3>
+            <table class="entries-table" id="entriesTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Systolic</th>
+                        <th>Diastolic</th>
+                        <th>Heart Rate</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="entriesBody">
+                </tbody>
+            </table>
         </div>
     </div>
     
-    <script src="script.js"></script>
+    <script>
+        let bpEntries = [];
+
+        function testAlert() {
+            alert('JavaScript is working inline!');
+        }
+
+        function addBPEntry() {
+            console.log('Add BP Entry called');
+            
+            const systolic = document.getElementById('systolic').value;
+            const diastolic = document.getElementById('diastolic').value;
+            const heartRate = document.getElementById('heartRate').value;
+            
+            console.log('Values:', { systolic, diastolic, heartRate });
+            
+            if (!systolic || !diastolic || !heartRate) {
+                alert('Please fill in all fields!');
+                return;
+            }
+            
+            const systolicNum = parseInt(systolic);
+            const diastolicNum = parseInt(diastolic);
+            const heartRateNum = parseInt(heartRate);
+            
+            if (systolicNum < 70 || systolicNum > 250 || diastolicNum < 40 || diastolicNum > 150 || heartRateNum < 40 || heartRateNum > 200) {
+                alert('Please enter valid values within the normal range!');
+                return;
+            }
+            
+            const entry = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+                systolic: systolicNum,
+                diastolic: diastolicNum,
+                heartRate: heartRateNum
+            };
+            
+            console.log('Adding entry:', entry);
+            
+            bpEntries.push(entry);
+            
+            document.getElementById('systolic').value = '';
+            document.getElementById('diastolic').value = '';
+            document.getElementById('heartRate').value = '';
+            
+            renderEntries();
+            saveToLocalStorage();
+            
+            console.log('Entry added, total entries:', bpEntries.length);
+        }
+
+        function deleteEntry(entryId) {
+            bpEntries = bpEntries.filter(entry => entry.id !== entryId);
+            renderEntries();
+            saveToLocalStorage();
+        }
+
+        function renderEntries() {
+            const entriesBody = document.getElementById('entriesBody');
+            entriesBody.innerHTML = '';
+            
+            const sortedEntries = bpEntries.sort((a, b) => b.id - a.id);
+            
+            sortedEntries.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.systolic}</td>
+                    <td>${entry.diastolic}</td>
+                    <td>${entry.heartRate}</td>
+                    <td><button class="delete-btn" onclick="deleteEntry(${entry.id})">Delete</button></td>
+                `;
+                entriesBody.appendChild(row);
+            });
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('bloprData', JSON.stringify({
+                bpEntries: bpEntries
+            }));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('bloprData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                bpEntries = data.bpEntries || [];
+                renderEntries();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFromLocalStorage();
+        });
+
+        console.log('Blopr Blood Pressure Tracker loaded successfully!');
+    </script>
 </body>
 </html>

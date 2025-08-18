@@ -1,80 +1,78 @@
-let counter = 0;
-let tasks = [];
+let bpEntries = [];
 
-function updateCounter() {
-    document.getElementById('counter').textContent = counter;
-}
-
-function increment() {
-    counter++;
-    updateCounter();
-    saveToLocalStorage();
-}
-
-function decrement() {
-    counter--;
-    updateCounter();
-    saveToLocalStorage();
-}
-
-function reset() {
-    counter = 0;
-    updateCounter();
-    saveToLocalStorage();
-}
-
-function addTask() {
-    const taskInput = document.getElementById('taskInput');
-    const taskText = taskInput.value.trim();
+function addBPEntry() {
+    console.log('Add BP Entry called');
     
-    if (taskText === '') {
-        alert('Please enter a task!');
+    const systolic = document.getElementById('systolic').value;
+    const diastolic = document.getElementById('diastolic').value;
+    const heartRate = document.getElementById('heartRate').value;
+    
+    console.log('Values:', { systolic, diastolic, heartRate });
+    
+    if (!systolic || !diastolic || !heartRate) {
+        alert('Please fill in all fields!');
         return;
     }
     
-    const task = {
+    const systolicNum = parseInt(systolic);
+    const diastolicNum = parseInt(diastolic);
+    const heartRateNum = parseInt(heartRate);
+    
+    if (systolicNum < 70 || systolicNum > 250 || diastolicNum < 40 || diastolicNum > 150 || heartRateNum < 40 || heartRateNum > 200) {
+        alert('Please enter valid values within the normal range!');
+        return;
+    }
+    
+    const entry = {
         id: Date.now(),
-        text: taskText,
-        completed: false
+        date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+        systolic: systolicNum,
+        diastolic: diastolicNum,
+        heartRate: heartRateNum
     };
     
-    tasks.push(task);
-    taskInput.value = '';
-    renderTasks();
-    saveToLocalStorage();
-}
-
-function deleteTask(taskId) {
-    tasks = tasks.filter(task => task.id !== taskId);
-    renderTasks();
-    saveToLocalStorage();
-}
-
-function renderTasks() {
-    const taskList = document.getElementById('taskList');
-    taskList.innerHTML = '';
+    console.log('Adding entry:', entry);
     
-    tasks.forEach(task => {
-        const li = document.createElement('li');
-        li.className = 'task-item';
-        li.innerHTML = `
-            <span>${task.text}</span>
-            <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
-        `;
-        taskList.appendChild(li);
-    });
+    bpEntries.push(entry);
+    
+    document.getElementById('systolic').value = '';
+    document.getElementById('diastolic').value = '';
+    document.getElementById('heartRate').value = '';
+    
+    renderEntries();
+    saveToLocalStorage();
+    
+    console.log('Entry added, total entries:', bpEntries.length);
 }
 
-function handleTaskInput(event) {
-    if (event.key === 'Enter') {
-        addTask();
-    }
+function deleteEntry(entryId) {
+    bpEntries = bpEntries.filter(entry => entry.id !== entryId);
+    renderEntries();
+    saveToLocalStorage();
+}
+
+function renderEntries() {
+    const entriesBody = document.getElementById('entriesBody');
+    entriesBody.innerHTML = '';
+    
+    const sortedEntries = bpEntries.sort((a, b) => b.id - a.id);
+    
+    sortedEntries.forEach(entry => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${entry.date}</td>
+            <td>${entry.systolic}</td>
+            <td>${entry.diastolic}</td>
+            <td>${entry.heartRate}</td>
+            <td><button class="delete-btn" onclick="deleteEntry(${entry.id})">Delete</button></td>
+        `;
+        entriesBody.appendChild(row);
+    });
 }
 
 function saveToLocalStorage() {
     localStorage.setItem('bloprData', JSON.stringify({
-        counter: counter,
-        tasks: tasks
+        bpEntries: bpEntries
     }));
 }
 
@@ -82,10 +80,8 @@ function loadFromLocalStorage() {
     const saved = localStorage.getItem('bloprData');
     if (saved) {
         const data = JSON.parse(saved);
-        counter = data.counter || 0;
-        tasks = data.tasks || [];
-        updateCounter();
-        renderTasks();
+        bpEntries = data.bpEntries || [];
+        renderEntries();
     }
 }
 
@@ -93,4 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFromLocalStorage();
 });
 
-console.log('Blopr app loaded successfully!');
+// Test function to verify JS is working
+function testAlert() {
+    alert('JavaScript is working!');
+}
+
+console.log('Blopr Blood Pressure Tracker loaded successfully!');
