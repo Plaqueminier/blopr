@@ -118,6 +118,20 @@
             min-width: 120px;
         }
         
+        .measurement-group {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .measurement-group h4 {
+            margin: 0 0 1rem 0;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+        
         .form-group label {
             display: block;
             margin-bottom: 5px;
@@ -368,31 +382,80 @@
         <p>Blood Pressure & Heart Rate Tracker</p>
         
         <div class="bp-form">
-            <h3>Add New Entry</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="systolic">Systolic:</label>
-                    <input type="number" id="systolic" placeholder="120" min="50" max="250">
+            <h3>Add New Entry (3 Measurements)</h3>
+            <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">Take 3 measurements and we'll calculate the average</p>
+            
+            <!-- Measurement 1 -->
+            <div class="measurement-group">
+                <h4>Measurement 1</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="systolic1">Systolic:</label>
+                        <input type="number" id="systolic1" placeholder="120" min="50" max="250">
+                    </div>
+                    <div class="form-group">
+                        <label for="diastolic1">Diastolic:</label>
+                        <input type="number" id="diastolic1" placeholder="80" min="40" max="170">
+                    </div>
+                    <div class="form-group">
+                        <label for="heartRate1">Heart Rate:</label>
+                        <input type="number" id="heartRate1" placeholder="70" min="40" max="200">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="diastolic">Diastolic:</label>
-                    <input type="number" id="diastolic" placeholder="80" min="40" max="170">
+            </div>
+            
+            <!-- Measurement 2 -->
+            <div class="measurement-group">
+                <h4>Measurement 2</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="systolic2">Systolic:</label>
+                        <input type="number" id="systolic2" placeholder="120" min="50" max="250">
+                    </div>
+                    <div class="form-group">
+                        <label for="diastolic2">Diastolic:</label>
+                        <input type="number" id="diastolic2" placeholder="80" min="40" max="170">
+                    </div>
+                    <div class="form-group">
+                        <label for="heartRate2">Heart Rate:</label>
+                        <input type="number" id="heartRate2" placeholder="70" min="40" max="200">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="heartRate">Heart Rate:</label>
-                    <input type="number" id="heartRate" placeholder="70" min="40" max="200">
+            </div>
+            
+            <!-- Measurement 3 -->
+            <div class="measurement-group">
+                <h4>Measurement 3</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="systolic3">Systolic:</label>
+                        <input type="number" id="systolic3" placeholder="120" min="50" max="250">
+                    </div>
+                    <div class="form-group">
+                        <label for="diastolic3">Diastolic:</label>
+                        <input type="number" id="diastolic3" placeholder="80" min="40" max="170">
+                    </div>
+                    <div class="form-group">
+                        <label for="heartRate3">Heart Rate:</label>
+                        <input type="number" id="heartRate3" placeholder="70" min="40" max="200">
+                    </div>
                 </div>
-                <div class="form-group dev-field">
+            </div>
+            
+            <!-- Dev fields -->
+            <div class="form-row dev-field">
+                <div class="form-group">
                     <label for="customDate">Custom Date (Dev - DD/MM/YYYY):</label>
                     <input type="text" id="customDate" placeholder="DD/MM/YYYY" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" title="Please enter date in DD/MM/YYYY format">
                 </div>
-                <div class="form-group dev-field">
+                <div class="form-group">
                     <label for="customTime">Custom Time:</label>
                     <input type="time" id="customTime">
                 </div>
-                <div class="form-group">
-                    <button onclick="addBPEntry()">Add Entry</button>
-                </div>
+            </div>
+            
+            <div class="form-group">
+                <button onclick="addBPEntry()">Add Averaged Entry</button>
             </div>
         </div>
         
@@ -515,25 +578,42 @@
         async function addBPEntry() {
             console.log('Add BP Entry called');
             
-            const systolic = document.getElementById('systolic').value;
-            const diastolic = document.getElementById('diastolic').value;
-            const heartRate = document.getElementById('heartRate').value;
-            
-            console.log('Values:', { systolic, diastolic, heartRate });
-            
-            if (!systolic || !diastolic || !heartRate) {
-                alert('Please fill in all fields!');
-                return;
+            // Get all 3 measurements
+            const measurements = [];
+            for (let i = 1; i <= 3; i++) {
+                const systolic = document.getElementById(`systolic${i}`).value;
+                const diastolic = document.getElementById(`diastolic${i}`).value;
+                const heartRate = document.getElementById(`heartRate${i}`).value;
+                
+                if (!systolic || !diastolic || !heartRate) {
+                    alert(`Please fill in all fields for Measurement ${i}!`);
+                    return;
+                }
+                
+                const systolicNum = parseInt(systolic);
+                const diastolicNum = parseInt(diastolic);
+                const heartRateNum = parseInt(heartRate);
+                
+                if (systolicNum < 50 || systolicNum > 250 || diastolicNum < 40 || diastolicNum > 170 || heartRateNum < 40 || heartRateNum > 200) {
+                    alert(`Please enter valid values within the normal range for Measurement ${i}!`);
+                    return;
+                }
+                
+                measurements.push({
+                    systolic: systolicNum,
+                    diastolic: diastolicNum,
+                    heartRate: heartRateNum
+                });
             }
             
-            const systolicNum = parseInt(systolic);
-            const diastolicNum = parseInt(diastolic);
-            const heartRateNum = parseInt(heartRate);
+            console.log('All measurements:', measurements);
             
-            if (systolicNum < 50 || systolicNum > 250 || diastolicNum < 40 || diastolicNum > 170 || heartRateNum < 40 || heartRateNum > 200) {
-                alert('Please enter valid values within the normal range!');
-                return;
-            }
+            // Calculate averages
+            const avgSystolic = Math.round(measurements.reduce((sum, m) => sum + m.systolic, 0) / 3);
+            const avgDiastolic = Math.round(measurements.reduce((sum, m) => sum + m.diastolic, 0) / 3);
+            const avgHeartRate = Math.round(measurements.reduce((sum, m) => sum + m.heartRate, 0) / 3);
+            
+            console.log('Averages:', { avgSystolic, avgDiastolic, avgHeartRate });
             
             let now = new Date();
             let dateStr, timeStr;
@@ -566,9 +646,9 @@
             const entry = {
                 id: Date.now(),
                 date: dateStr + ' ' + timeStr,
-                systolic: systolicNum,
-                diastolic: diastolicNum,
-                heartRate: heartRateNum
+                systolic: avgSystolic,
+                diastolic: avgDiastolic,
+                heartRate: avgHeartRate
             };
             
             console.log('Adding entry:', entry);
@@ -577,9 +657,12 @@
             if (saved) {
                 bpEntries.push(entry);
                 
-                document.getElementById('systolic').value = '';
-                document.getElementById('diastolic').value = '';
-                document.getElementById('heartRate').value = '';
+                // Clear all measurement fields
+                for (let i = 1; i <= 3; i++) {
+                    document.getElementById(`systolic${i}`).value = '';
+                    document.getElementById(`diastolic${i}`).value = '';
+                    document.getElementById(`heartRate${i}`).value = '';
+                }
                 
                 renderEntries();
                 
