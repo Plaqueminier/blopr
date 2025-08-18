@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blopr - Simple Web App</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -135,6 +136,19 @@
         .form-group input:focus {
             border-color: #667eea;
             outline: none;
+        }
+        
+        .graph-section {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .graph-section canvas {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: #f8f9fa;
+            max-width: 100%;
+            height: auto;
         }
         
         .entries-section {
@@ -273,6 +287,11 @@
             </div>
         </div>
         
+        <div class="graph-section">
+            <h3>Blood Pressure Trends</h3>
+            <canvas id="bpChart" width="600" height="300"></canvas>
+        </div>
+        
         <div class="entries-section">
             <h3>Your Entries</h3>
             <table class="entries-table" id="entriesTable">
@@ -367,6 +386,8 @@
                 `;
                 entriesBody.appendChild(row);
             });
+            
+            drawChart();
         }
 
         function saveToLocalStorage() {
@@ -375,12 +396,87 @@
             }));
         }
 
+        let bpChart = null;
+
+        function drawChart() {
+            const ctx = document.getElementById('bpChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (bpChart) {
+                bpChart.destroy();
+            }
+            
+            if (bpEntries.length === 0) {
+                return;
+            }
+            
+            // Sort entries by date (oldest first for chart)
+            const sortedEntries = [...bpEntries].sort((a, b) => a.id - b.id);
+            const maxEntries = Math.min(sortedEntries.length, 10); // Show last 10 entries
+            const entries = sortedEntries.slice(-maxEntries);
+            
+            const labels = entries.map(entry => {
+                const [datePart] = entry.date.split(' ');
+                return datePart;
+            });
+            
+            bpChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Systolic',
+                        data: entries.map(e => e.systolic),
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        fill: false,
+                        tension: 0.1
+                    }, {
+                        label: 'Diastolic',
+                        data: entries.map(e => e.diastolic),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: false
+                        },
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'mmHg'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function loadFromLocalStorage() {
             const saved = localStorage.getItem('bloprData');
             if (saved) {
                 const data = JSON.parse(saved);
                 bpEntries = data.bpEntries || [];
                 renderEntries();
+                drawChart();
             }
         }
 
