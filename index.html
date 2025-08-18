@@ -152,6 +152,34 @@
             background: #f8f9fa;
         }
         
+        .dev-toggle {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.3;
+            user-select: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .dev-toggle:hover {
+            opacity: 1;
+        }
+        
+        .dev-mode-active .dev-toggle {
+            opacity: 1;
+            color: #e74c3c;
+        }
+        
+        .dev-field {
+            display: none;
+        }
+        
+        .dev-mode-active .dev-field {
+            display: block;
+        }
+        
         .entries-section {
             margin-top: 2rem;
         }
@@ -241,11 +269,33 @@
                 width: auto;
                 margin: 0;
             }
+            
+            .dev-toggle {
+                font-size: 18px;
+                top: 8px;
+                right: 12px;
+            }
+            
+            .graph-section {
+                height: 300px;
+                margin: 1.5rem 0;
+            }
         }
         
         @media (max-width: 480px) {
             .container {
                 padding: 1rem;
+            }
+            
+            .dev-toggle {
+                font-size: 16px;
+                top: 5px;
+                right: 10px;
+            }
+            
+            .graph-section {
+                height: 250px;
+                margin: 1rem 0;
             }
             
             .entries-table {
@@ -259,11 +309,16 @@
             .entries-table td {
                 padding: 6px 3px;
             }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="dev-toggle" onclick="toggleDevMode()">🔧</div>
         <h1>Blopr</h1>
         <p>Blood Pressure & Heart Rate Tracker</p>
         
@@ -281,6 +336,10 @@
                 <div class="form-group">
                     <label for="heartRate">Heart Rate:</label>
                     <input type="number" id="heartRate" placeholder="70" min="40" max="200">
+                </div>
+                <div class="form-group dev-field">
+                    <label for="customDate">Custom Date (Dev):</label>
+                    <input type="datetime-local" id="customDate">
                 </div>
                 <div class="form-group">
                     <button onclick="addBPEntry()">Add Entry</button>
@@ -338,9 +397,19 @@
                 return;
             }
             
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('fr-FR');
-            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            let now = new Date();
+            let dateStr, timeStr;
+            
+            // Check if dev mode is active and custom date is provided
+            if (devMode) {
+                const customDate = document.getElementById('customDate').value;
+                if (customDate) {
+                    now = new Date(customDate);
+                }
+            }
+            
+            dateStr = now.toLocaleDateString('fr-FR');
+            timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             
             const entry = {
                 id: Date.now(),
@@ -478,6 +547,19 @@
                 bpEntries = data.bpEntries || [];
                 renderEntries();
                 drawChart();
+            }
+        }
+
+        let devMode = false;
+
+        function toggleDevMode() {
+            devMode = !devMode;
+            const container = document.querySelector('.container');
+            if (devMode) {
+                container.classList.add('dev-mode-active');
+            } else {
+                container.classList.remove('dev-mode-active');
+                document.getElementById('customDate').value = '';
             }
         }
 
