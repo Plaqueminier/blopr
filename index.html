@@ -402,14 +402,15 @@
 
         // Auto-detect API base URL for cross-device compatibility
         function getApiBase() {
-            // Manual override - uncomment and set your server IP if auto-detection fails
-            // return 'http://YOUR_SERVER_IP:3847/api';
-            
-            // If accessed via localhost, use localhost
+            // If accessed via localhost, use localhost with port
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                 return 'http://localhost:3847/api';
             }
-            // Otherwise use the same host as the frontend
+            // If accessed via domain, use same domain with nginx proxy
+            if (window.location.hostname === 'blopr.plaqueminier.com') {
+                return `${window.location.protocol}//${window.location.hostname}/api`;
+            }
+            // Fallback for other hosts (direct IP access)
             return `http://${window.location.hostname}:3847/api`;
         }
         
