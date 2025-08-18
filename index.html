@@ -142,8 +142,21 @@
             margin-top: 2rem;
             text-align: center;
             position: relative;
-            height: 400px;
             margin-bottom: 2rem;
+        }
+        
+        .chart-container {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .chart-box {
+            flex: 1;
+            min-width: 300px;
+            height: 300px;
+            position: relative;
         }
         
         .graph-section canvas {
@@ -276,9 +289,14 @@
                 right: 12px;
             }
             
-            .graph-section {
-                height: 300px;
-                margin: 1.5rem 0;
+            .chart-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .chart-box {
+                height: 200px;
+                min-width: auto;
             }
         }
         
@@ -293,9 +311,8 @@
                 right: 10px;
             }
             
-            .graph-section {
-                height: 250px;
-                margin: 1rem 0;
+            .chart-box {
+                height: 180px;
             }
             
             .entries-table {
@@ -349,7 +366,16 @@
         
         <div class="graph-section">
             <h3>Blood Pressure Trends</h3>
-            <canvas id="bpChart"></canvas>
+            <div class="chart-container">
+                <div class="chart-box">
+                    <h4>Systolic Pressure</h4>
+                    <canvas id="systolicChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h4>Diastolic Pressure</h4>
+                    <canvas id="diastolicChart"></canvas>
+                </div>
+            </div>
         </div>
         
         <div class="entries-section">
@@ -466,14 +492,20 @@
             }));
         }
 
-        let bpChart = null;
+        let systolicChart = null;
+        let diastolicChart = null;
 
         function drawChart() {
-            const ctx = document.getElementById('bpChart').getContext('2d');
+            drawSystolicChart();
+            drawDiastolicChart();
+        }
+        
+        function drawSystolicChart() {
+            const ctx = document.getElementById('systolicChart').getContext('2d');
             
             // Destroy existing chart if it exists
-            if (bpChart) {
-                bpChart.destroy();
+            if (systolicChart) {
+                systolicChart.destroy();
             }
             
             if (bpEntries.length === 0) {
@@ -490,7 +522,7 @@
                 return datePart;
             });
             
-            bpChart = new Chart(ctx, {
+            systolicChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -499,14 +531,7 @@
                         data: entries.map(e => e.systolic),
                         borderColor: '#e74c3c',
                         backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                        fill: false,
-                        tension: 0.1
-                    }, {
-                        label: 'Diastolic',
-                        data: entries.map(e => e.diastolic),
-                        borderColor: '#3498db',
-                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                        fill: false,
+                        fill: true,
                         tension: 0.1
                     }]
                 },
@@ -514,11 +539,70 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        title: {
-                            display: false
-                        },
                         legend: {
-                            position: 'top'
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'mmHg'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function drawDiastolicChart() {
+            const ctx = document.getElementById('diastolicChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (diastolicChart) {
+                diastolicChart.destroy();
+            }
+            
+            if (bpEntries.length === 0) {
+                return;
+            }
+            
+            // Sort entries by date (oldest first for chart)
+            const sortedEntries = [...bpEntries].sort((a, b) => a.id - b.id);
+            const maxEntries = Math.min(sortedEntries.length, 10); // Show last 10 entries
+            const entries = sortedEntries.slice(-maxEntries);
+            
+            const labels = entries.map(entry => {
+                const [datePart] = entry.date.split(' ');
+                return datePart;
+            });
+            
+            diastolicChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Diastolic',
+                        data: entries.map(e => e.diastolic),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
                         }
                     },
                     scales: {
@@ -555,11 +639,21 @@
         function toggleDevMode() {
             devMode = !devMode;
             const container = document.querySelector('.container');
+            const customDateInput = document.getElementById('customDate');
+            
             if (devMode) {
                 container.classList.add('dev-mode-active');
+                // Set the current date in DD/MM/YYYY format for the datetime-local input
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                customDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
             } else {
                 container.classList.remove('dev-mode-active');
-                document.getElementById('customDate').value = '';
+                customDateInput.value = '';
             }
         }
 
