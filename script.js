@@ -89,9 +89,5 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFromLocalStorage();
 });
 
-// Test function to verify JS is working
-function testAlert() {
-    alert('JavaScript is working!');
-}
 
 console.log('Blopr Blood Pressure Tracker loaded successfully!');
