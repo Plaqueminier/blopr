@@ -318,9 +318,13 @@
                 return;
             }
             
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('fr-FR');
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            
             const entry = {
                 id: Date.now(),
-                date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+                date: dateStr + ' ' + timeStr,
                 systolic: systolicNum,
                 diastolic: diastolicNum,
                 heartRate: heartRateNum
