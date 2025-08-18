@@ -36,4 +36,4 @@ SQLite database (`blopr.db`) is created automatically with schema:
 
 ## Default Port
 
-Server runs on port 3001 by default.
+Server runs on port 3847 by default.
