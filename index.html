@@ -355,8 +355,12 @@
                     <input type="number" id="heartRate" placeholder="70" min="40" max="200">
                 </div>
                 <div class="form-group dev-field">
-                    <label for="customDate">Custom Date (Dev):</label>
-                    <input type="datetime-local" id="customDate">
+                    <label for="customDate">Custom Date (Dev - DD/MM/YYYY):</label>
+                    <input type="date" id="customDate" placeholder="DD/MM/YYYY">
+                </div>
+                <div class="form-group dev-field">
+                    <label for="customTime">Custom Time:</label>
+                    <input type="time" id="customTime">
                 </div>
                 <div class="form-group">
                     <button onclick="addBPEntry()">Add Entry</button>
@@ -509,8 +513,14 @@
             // Check if dev mode is active and custom date is provided
             if (devMode) {
                 const customDate = document.getElementById('customDate').value;
+                const customTime = document.getElementById('customTime').value;
                 if (customDate) {
-                    now = new Date(customDate);
+                    if (customTime) {
+                        // Combine date and time
+                        now = new Date(`${customDate}T${customTime}`);
+                    } else {
+                        now = new Date(customDate);
+                    }
                 }
             }
             
@@ -714,20 +724,23 @@
             devMode = !devMode;
             const container = document.querySelector('.container');
             const customDateInput = document.getElementById('customDate');
+            const customTimeInput = document.getElementById('customTime');
             
             if (devMode) {
                 container.classList.add('dev-mode-active');
-                // Set the current date in DD/MM/YYYY format for the datetime-local input
+                // Set the current date and time
                 const now = new Date();
                 const year = now.getFullYear();
                 const month = String(now.getMonth() + 1).padStart(2, '0');
                 const day = String(now.getDate()).padStart(2, '0');
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
-                customDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                customDateInput.value = `${year}-${month}-${day}`;
+                customTimeInput.value = `${hours}:${minutes}`;
             } else {
                 container.classList.remove('dev-mode-active');
                 customDateInput.value = '';
+                customTimeInput.value = '';
             }
         }
 
