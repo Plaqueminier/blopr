@@ -141,14 +141,15 @@
         .graph-section {
             margin-top: 2rem;
             text-align: center;
+            position: relative;
+            height: 400px;
+            margin-bottom: 2rem;
         }
         
         .graph-section canvas {
             border: 2px solid #ddd;
             border-radius: 10px;
             background: #f8f9fa;
-            max-width: 100%;
-            height: auto;
         }
         
         .entries-section {
@@ -289,7 +290,7 @@
         
         <div class="graph-section">
             <h3>Blood Pressure Trends</h3>
-            <canvas id="bpChart" width="600" height="300"></canvas>
+            <canvas id="bpChart"></canvas>
         </div>
         
         <div class="entries-section">
