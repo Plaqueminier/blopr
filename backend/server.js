@@ -9,7 +9,8 @@ const PORT = process.env.PORT || 3847;
 app.use(cors());
 app.use(express.json());
 
-const db = new sqlite3.Database('./blopr.db', (err) => {
+const dbPath = path.join(__dirname, 'blopr.db');
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database:', err.message);
     } else {

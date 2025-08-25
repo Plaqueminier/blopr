@@ -554,24 +554,24 @@
                 const response = await fetch(`${API_BASE}/entries/${username}`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.length > 0) {
-                        currentUsername = username;
-                        document.getElementById('login-container').style.display = 'none';
-                        document.getElementById('app-container').style.display = 'block';
 
-                        bpEntries = data.map(entry => ({
-                            id: entry.id,
-                            date: `${entry.date} ${entry.time}`,
-                            systolic: entry.systolic,
-                            diastolic: entry.diastolic,
-                            heartRate: entry.heart_rate
-                        }));
-                        renderEntries();
-                        drawChart();
-                    } else {
-                        // As per instructions, do nothing if no data
-                        console.log(`No entries found for username: ${username}`);
-                    }
+                    // Show the main app for any valid user, even if they have no data yet.
+                    currentUsername = username;
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('app-container').style.display = 'block';
+
+                    bpEntries = data.map(entry => ({
+                        id: entry.id,
+                        date: `${entry.date} ${entry.time}`,
+                        systolic: entry.systolic,
+                        diastolic: entry.diastolic,
+                        heartRate: entry.heart_rate
+                    }));
+
+                    renderEntries();
+                    drawChart();
+                } else {
+                    alert('Failed to load user data. Please check the server connection and try again.');
                 }
             } catch (error) {
                 console.error('Failed to load entries:', error);
