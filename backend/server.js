@@ -27,6 +27,7 @@ function initDatabase() {
         heart_rate INTEGER NOT NULL,
         date TEXT NOT NULL,
         time TEXT NOT NULL,
+        username TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 }
