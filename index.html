@@ -459,6 +459,22 @@
             </div>
         </div>
         
+        <div class="averages-section" style="margin-top: 2rem;">
+            <h3>Averages</h3>
+            <table class="entries-table" id="averagesTable">
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Systolic</th>
+                        <th>Diastolic</th>
+                        <th>Heart Rate</th>
+                    </tr>
+                </thead>
+                <tbody id="averagesBody">
+                </tbody>
+            </table>
+        </div>
+
         <div class="graph-section">
             <h3>Blood Pressure Trends</h3>
             <div class="chart-container">
@@ -701,8 +717,59 @@
             });
             
             drawChart();
+            renderAverages();
         }
 
+        function parseDate(dateStr) {
+            const [datePart, timePart] = dateStr.split(' ');
+            const [day, month, year] = datePart.split('/');
+            if (!timePart) {
+              return new Date(`${year}-${month}-${day}`);
+            }
+            const [hours, minutes] = timePart.split(':');
+            return new Date(year, month - 1, day, hours, minutes);
+        }
+
+        function renderAverages() {
+            const averagesBody = document.getElementById('averagesBody');
+            averagesBody.innerHTML = '';
+
+            if (bpEntries.length === 0) return;
+
+            const now = new Date();
+            const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+            const twoWeeksAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
+            const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+            const periods = {
+                'Last Week': e => parseDate(e.date) >= oneWeekAgo,
+                'Week Before Last': e => parseDate(e.date) >= twoWeeksAgo && parseDate(e.date) < oneWeekAgo,
+                'Last Month': e => parseDate(e.date) >= oneMonthAgo,
+                'Last Year': e => parseDate(e.date) >= oneYearAgo,
+                'All Time': e => true,
+            };
+
+            for (const periodName in periods) {
+                const filterFn = periods[periodName];
+                const filteredEntries = bpEntries.filter(filterFn);
+
+                if (filteredEntries.length > 0) {
+                    const avgSystolic = Math.round(filteredEntries.reduce((sum, e) => sum + e.systolic, 0) / filteredEntries.length);
+                    const avgDiastolic = Math.round(filteredEntries.reduce((sum, e) => sum + e.diastolic, 0) / filteredEntries.length);
+                    const avgHeartRate = Math.round(filteredEntries.reduce((sum, e) => sum + e.heartRate, 0) / filteredEntries.length);
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${periodName}</td>
+                        <td>${avgSystolic}</td>
+                        <td>${avgDiastolic}</td>
+                        <td>${avgHeartRate}</td>
+                    `;
+                    averagesBody.appendChild(row);
+                }
+            }
+        }
 
         let systolicChart = null;
         let diastolicChart = null;
