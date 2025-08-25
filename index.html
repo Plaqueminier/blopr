@@ -376,7 +376,17 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="login-container" class="container">
+        <h1>Welcome to Blopr</h1>
+        <p>Please enter your username to continue</p>
+        <div class="form-group" style="margin-top: 2rem;">
+            <label for="username" style="text-align: left;">Username:</label>
+            <input type="text" id="username" class="task-input" placeholder="e.g. ant0ine">
+        </div>
+        <button onclick="loadUser()">Go</button>
+    </div>
+
+    <div id="app-container" class="container" style="display: none;">
         <div class="dev-toggle" onclick="toggleDevMode()">🔧</div>
         <h1>Blopr</h1>
         <p>Blood Pressure & Heart Rate Tracker</p>
@@ -456,6 +466,7 @@
             
             <div class="form-group">
                 <button onclick="addBPEntry()">Add Averaged Entry</button>
+                <button onclick="switchUser()" style="background-color: #777; margin-left: 1rem;">Switch User</button>
             </div>
         </div>
         
@@ -506,10 +517,11 @@
             </table>
         </div>
     </div>
+    </div>
     
     <script>
         let bpEntries = [];
-
+        let currentUsername = null;
 
         // Auto-detect API base URL for cross-device compatibility
         function getApiBase() {
@@ -528,21 +540,38 @@
         const API_BASE = getApiBase();
         console.log('Using API base:', API_BASE);
 
-        async function loadEntries() {
+        async function loadUser() {
+            const username = document.getElementById('username').value.trim();
+            if (!username) {
+                alert('Please enter a username.');
+                return;
+            }
+            await loadEntries(username);
+        }
+
+        async function loadEntries(username) {
             try {
-                const response = await fetch(`${API_BASE}/entries`);
+                const response = await fetch(`${API_BASE}/entries/${username}`);
                 if (response.ok) {
-                    bpEntries = await response.json();
-                    // Convert backend format to frontend format
-                    bpEntries = bpEntries.map(entry => ({
-                        id: entry.id,
-                        date: `${entry.date} ${entry.time}`,
-                        systolic: entry.systolic,
-                        diastolic: entry.diastolic,
-                        heartRate: entry.heart_rate
-                    }));
-                    renderEntries();
-                    drawChart();
+                    const data = await response.json();
+                    if (data.length > 0) {
+                        currentUsername = username;
+                        document.getElementById('login-container').style.display = 'none';
+                        document.getElementById('app-container').style.display = 'block';
+
+                        bpEntries = data.map(entry => ({
+                            id: entry.id,
+                            date: `${entry.date} ${entry.time}`,
+                            systolic: entry.systolic,
+                            diastolic: entry.diastolic,
+                            heartRate: entry.heart_rate
+                        }));
+                        renderEntries();
+                        drawChart();
+                    } else {
+                        // As per instructions, do nothing if no data
+                        console.log(`No entries found for username: ${username}`);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to load entries:', error);
@@ -562,7 +591,8 @@
                         diastolic: entry.diastolic,
                         heart_rate: entry.heartRate,
                         date: entry.date.split(' ')[0],
-                        time: entry.date.split(' ')[1]
+                        time: entry.date.split(' ')[1],
+                        username: currentUsername
                     })
                 });
                 
@@ -906,6 +936,10 @@
 
         let devMode = false;
 
+        function switchUser() {
+            location.reload();
+        }
+
         function toggleDevMode() {
             devMode = !devMode;
             const container = document.querySelector('.container');
@@ -931,7 +965,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadEntries();
+            // No initial data load, user must log in first
         });
 
         console.log('Blopr Blood Pressure Tracker loaded successfully!');

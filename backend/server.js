@@ -30,8 +30,9 @@ function initDatabase() {
     )`);
 }
 
-app.get('/api/entries', (req, res) => {
-    db.all('SELECT * FROM blood_pressure_entries ORDER BY date DESC, time DESC', (err, rows) => {
+app.get('/api/entries/:username', (req, res) => {
+    const username = req.params.username;
+    db.all('SELECT * FROM blood_pressure_entries WHERE username = ? ORDER BY date DESC, time DESC', [username], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -41,16 +42,16 @@ app.get('/api/entries', (req, res) => {
 });
 
 app.post('/api/entries', (req, res) => {
-    const { systolic, diastolic, heart_rate, date, time } = req.body;
+    const { systolic, diastolic, heart_rate, date, time, username } = req.body;
     
-    if (!systolic || !diastolic || !heart_rate || !date || !time) {
+    if (!systolic || !diastolic || !heart_rate || !date || !time || !username) {
         res.status(400).json({ error: 'All fields are required' });
         return;
     }
     
     db.run(
-        'INSERT INTO blood_pressure_entries (systolic, diastolic, heart_rate, date, time) VALUES (?, ?, ?, ?, ?)',
-        [systolic, diastolic, heart_rate, date, time],
+        'INSERT INTO blood_pressure_entries (systolic, diastolic, heart_rate, date, time, username) VALUES (?, ?, ?, ?, ?, ?)',
+        [systolic, diastolic, heart_rate, date, time, username],
         function(err) {
             if (err) {
                 res.status(500).json({ error: err.message });
@@ -62,7 +63,8 @@ app.post('/api/entries', (req, res) => {
                 diastolic,
                 heart_rate,
                 date,
-                time
+                time,
+                username
             });
         }
     );
