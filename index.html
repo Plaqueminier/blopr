@@ -388,8 +388,16 @@
 
     <div id="app-container" class="container" style="display: none;">
         <div class="dev-toggle" onclick="toggleDevMode()">🔧</div>
-        <h1>Blopr</h1>
-        <p>Blood Pressure & Heart Rate Tracker</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+                <h1>Blopr</h1>
+                <p>Blood Pressure & Heart Rate Tracker</p>
+            </div>
+            <div id="user-info" style="text-align: right;">
+                <p style="margin-bottom: 5px;">User: <strong id="display-username"></strong></p>
+                <button onclick="switchUser()" style="background-color: #777; padding: 5px 10px; font-size: 0.8rem; width: auto; margin: 0;">Switch User</button>
+            </div>
+        </div>
         
         <div class="bp-form">
             <h3>Add New Entry (3 Measurements)</h3>
@@ -466,7 +474,6 @@
             
             <div class="form-group">
                 <button onclick="addBPEntry()">Add Averaged Entry</button>
-                <button onclick="switchUser()" style="background-color: #777; margin-left: 1rem;">Switch User</button>
             </div>
         </div>
         
@@ -557,6 +564,7 @@
 
                     // Show the main app for any valid user, even if they have no data yet.
                     currentUsername = username;
+                    localStorage.setItem('bloprUsername', currentUsername);
                     document.getElementById('login-container').style.display = 'none';
                     document.getElementById('app-container').style.display = 'block';
 
@@ -729,6 +737,7 @@
         }
 
         function renderEntries() {
+            document.getElementById('display-username').textContent = currentUsername;
             const entriesBody = document.getElementById('entriesBody');
             entriesBody.innerHTML = '';
             
@@ -937,7 +946,12 @@
         let devMode = false;
 
         function switchUser() {
-            location.reload();
+            currentUsername = null;
+            localStorage.removeItem('bloprUsername');
+
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('username').value = '';
         }
 
         function toggleDevMode() {
@@ -965,7 +979,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // No initial data load, user must log in first
+            const savedUsername = localStorage.getItem('bloprUsername');
+            if (savedUsername) {
+                loadEntries(savedUsername);
+            }
         });
 
         console.log('Blopr Blood Pressure Tracker loaded successfully!');
