@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blopr - Simple Web App</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -742,7 +744,7 @@
             const entriesBody = document.getElementById('entriesBody');
             entriesBody.innerHTML = '';
             
-            const sortedEntries = bpEntries.sort((a, b) => b.id - a.id);
+            const sortedEntries = [...bpEntries].sort((a, b) => parseDate(b.date) - parseDate(a.date));
             
             sortedEntries.forEach(entry => {
                 const row = document.createElement('tr');
@@ -821,33 +823,30 @@
         
         function drawSystolicChart() {
             const ctx = document.getElementById('systolicChart').getContext('2d');
-            
+
             // Destroy existing chart if it exists
             if (systolicChart) {
                 systolicChart.destroy();
             }
-            
+
             if (bpEntries.length === 0) {
                 return;
             }
-            
+
             // Sort entries by date (oldest first for chart)
-            const sortedEntries = [...bpEntries].sort((a, b) => a.id - b.id);
-            const maxEntries = Math.min(sortedEntries.length, 10); // Show last 10 entries
-            const entries = sortedEntries.slice(-maxEntries);
-            
-            const labels = entries.map(entry => {
-                const [datePart] = entry.date.split(' ');
-                return datePart;
-            });
-            
+            const sortedEntries = [...bpEntries].sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+            const data = sortedEntries.map(entry => ({
+                x: parseDate(entry.date),
+                y: entry.systolic
+            }));
+
             systolicChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
                     datasets: [{
                         label: 'Systolic',
-                        data: entries.map(e => e.systolic),
+                        data: data,
                         borderColor: '#e74c3c',
                         backgroundColor: 'rgba(231, 76, 60, 0.1)',
                         fill: true,
@@ -871,6 +870,11 @@
                             }
                         },
                         x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'dd/MM/yyyy HH:mm'
+                            },
                             title: {
                                 display: true,
                                 text: 'Date'
@@ -883,33 +887,30 @@
         
         function drawDiastolicChart() {
             const ctx = document.getElementById('diastolicChart').getContext('2d');
-            
+
             // Destroy existing chart if it exists
             if (diastolicChart) {
                 diastolicChart.destroy();
             }
-            
+
             if (bpEntries.length === 0) {
                 return;
             }
-            
+
             // Sort entries by date (oldest first for chart)
-            const sortedEntries = [...bpEntries].sort((a, b) => a.id - b.id);
-            const maxEntries = Math.min(sortedEntries.length, 10); // Show last 10 entries
-            const entries = sortedEntries.slice(-maxEntries);
-            
-            const labels = entries.map(entry => {
-                const [datePart] = entry.date.split(' ');
-                return datePart;
-            });
-            
+            const sortedEntries = [...bpEntries].sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+            const data = sortedEntries.map(entry => ({
+                x: parseDate(entry.date),
+                y: entry.diastolic
+            }));
+
             diastolicChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
                     datasets: [{
                         label: 'Diastolic',
-                        data: entries.map(e => e.diastolic),
+                        data: data,
                         borderColor: '#3498db',
                         backgroundColor: 'rgba(52, 152, 219, 0.1)',
                         fill: true,
@@ -933,6 +934,11 @@
                             }
                         },
                         x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'dd/MM/yyyy HH:mm'
+                            },
                             title: {
                                 display: true,
                                 text: 'Date'
